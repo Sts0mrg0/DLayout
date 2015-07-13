@@ -1,0 +1,27 @@
+{
+  "name": "layoutit",
+  "version": "0.0.1",
+  "homepage": "https://github.com/danielxiaowxx/layoutit",
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "bootstrap": "~3.3.5",
+    "jquery-htmlclean": "~1.4.0",
+    "jquery-ui-touch-punch": "*",
+    "jquery-ui": "~1.11.4",
+    "angular": "~1.4.1",
+    "angular-bootstrap": "~0.13.0",
+    "lodash": "~3.10.0",
+    "ace-builds": "~1.2.0"
+  },
+  "authors": [
+    "danielxiaowxx <xiaohutu136@163.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
