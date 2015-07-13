@@ -1,7 +1,7 @@
 {
-  "name": "layoutit",
+  "name": "DLayout",
   "version": "0.0.1",
-  "homepage": "https://github.com/danielxiaowxx/layoutit",
+  "homepage": "https://github.com/danielxiaowxx/DLayout",
   "dependencies": {
     "jquery": "~2.1.4",
     "bootstrap": "~3.3.5",
