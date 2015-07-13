@@ -18,3 +18,12 @@
 
 该功能为内部使用，所以不作浏览器兼容处理，使用时请用最新版的chrome浏览器
 
+
+How to run
+========
+if you use mac, simply run the script
+```
+sh run.sh
+```
+
+
