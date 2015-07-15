@@ -170,7 +170,16 @@ body.builder {
   border        : 1px solid #DDD;
   border-radius : 4px;
   position      : relative;
-  word-wrap     : break-word
+  word-wrap     : break-word;
+}
+
+.builder.edit .demo-preview {
+  margin-left   : 0;
+  border        : 1px solid #DDD;
+  border-radius : 4px;
+  position      : relative;
+  word-wrap     : break-word;
+  display       : none;
 }
 
 .builder.edit .demo .lyrow .drag {
@@ -453,6 +462,14 @@ body.builder {
 .builder.devpreview .demo .column {
   padding-top    : 19px;
   padding-bottom : 19px
+}
+
+.builder.sourcepreview .demo {
+  display: none;
+}
+
+.builder.sourcepreview .demo-preview {
+  display: block;
 }
 
 .builder.sourcepreview .column, .builder.sourcepreview .demo .box, .builder.sourcepreview .row {

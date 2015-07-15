@@ -236,38 +236,43 @@ function cleanHtml(e) {
 }
 
 /**
- * 显示布局模板源码
+ * 取得真正的HTML源码
+ * @returns {*}
  */
-function downloadLayoutSrc() {
+function getSourceHtml() {
   $("#download-layout").children().html($(".demo").html());
-  var t = $("#download-layout").children();
-  t.find(".preview, .configuration, .drag, .remove").remove();
-  t.find(".lyrow").addClass("removeClean");
-  t.find(".box-element").addClass("removeClean");
-  t.find(".lyrow .lyrow .lyrow .lyrow .lyrow .removeClean").each(function() {
+  var containerElem = $("#download-layout").children();
+
+  containerElem.find(".preview, .configuration, .drag, .remove").remove();
+  containerElem.find(".lyrow").addClass("removeClean");
+  containerElem.find(".box-element").addClass("removeClean");
+  containerElem.find(".lyrow .lyrow .lyrow .lyrow .lyrow .removeClean").each(function() {
     cleanHtml(this)
   });
-  t.find(".lyrow .lyrow .lyrow .lyrow .removeClean").each(function() {
+  containerElem.find(".lyrow .lyrow .lyrow .lyrow .removeClean").each(function() {
     cleanHtml(this)
   });
-  t.find(".lyrow .lyrow .lyrow .removeClean").each(function() {
+  containerElem.find(".lyrow .lyrow .lyrow .removeClean").each(function() {
     cleanHtml(this)
   });
-  t.find(".lyrow .lyrow .removeClean").each(function() {
+  containerElem.find(".lyrow .lyrow .removeClean").each(function() {
     cleanHtml(this)
   });
-  t.find(".lyrow .removeClean").each(function() {
+  containerElem.find(".lyrow .removeClean").each(function() {
     cleanHtml(this)
   });
-  t.find(".removeClean").each(function() {
+  containerElem.find(".removeClean").each(function() {
     cleanHtml(this)
   });
-  t.find(".removeClean").remove();
+  containerElem.find(".removeClean").remove();
+
   $("#download-layout .column").removeClass("ui-sortable");
   $("#download-layout .row-fluid").removeClass("clearfix").children().removeClass("column");
+
   if ($("#download-layout .container").length > 0) {
     changeStructure("row-fluid", "row")
   }
+
   var formatSrc = $.htmlClean($("#download-layout").html(), {
     format           : true,
     allowedAttributes: [
@@ -284,9 +289,17 @@ function downloadLayoutSrc() {
       ["data-slide"]
     ]
   });
-  $("#download-layout").html(formatSrc);
+
+  return formatSrc;
+}
+
+/**
+ * 显示布局模板源码
+ */
+function downloadLayoutSrc() {
+  var srcHtml = getSourceHtml();
   $("#downloadModal textarea").empty();
-  $("#downloadModal textarea").val(formatSrc)
+  $("#downloadModal textarea").val(srcHtml);
 }
 
 /**
@@ -446,12 +459,17 @@ $(document).ready(function() {
     $(this).addClass("active");
     return false
   });
+  // 预览事件处理
   $("#sourcepreview").click(function() {
     $("body").removeClass("edit");
     $("body").addClass("devpreview sourcepreview");
+    $('body .demo-preview').html(getSourceHtml());
+
+    // 改变按钮选中样式
     removeMenuClasses();
     $(this).addClass("active");
-    return false
+
+    return false;
   });
   $("#fluidPage").click(function(e) {
     e.preventDefault();
