@@ -243,28 +243,15 @@ function getSourceHtml() {
   $("#download-layout").children().html($(".demo").html());
   var containerElem = $("#download-layout").children();
 
-  containerElem.find(".preview, .configuration, .drag, .remove").remove();
-  containerElem.find(".lyrow").addClass("removeClean");
-  containerElem.find(".box-element").addClass("removeClean");
-  containerElem.find(".lyrow .lyrow .lyrow .lyrow .lyrow .removeClean").each(function() {
-    cleanHtml(this)
+  _.each(containerElem.children(), function(rootItem) {
+    var viewElems = $(rootItem).find('.view');
+
+    _.eachRight(viewElems, function(viewElemItem) { // 用eachRight从子元素开始处理
+      var $viewElemItem = $(viewElemItem);
+      var $fatherItem = $viewElemItem.closest('.lyrow, .box-element');
+      $fatherItem.replaceWith($viewElemItem.html()); // 真实的HTML代码替换掉辅助的HTML代码
+    });
   });
-  containerElem.find(".lyrow .lyrow .lyrow .lyrow .removeClean").each(function() {
-    cleanHtml(this)
-  });
-  containerElem.find(".lyrow .lyrow .lyrow .removeClean").each(function() {
-    cleanHtml(this)
-  });
-  containerElem.find(".lyrow .lyrow .removeClean").each(function() {
-    cleanHtml(this)
-  });
-  containerElem.find(".lyrow .removeClean").each(function() {
-    cleanHtml(this)
-  });
-  containerElem.find(".removeClean").each(function() {
-    cleanHtml(this)
-  });
-  containerElem.find(".removeClean").remove();
 
   $("#download-layout .column").removeClass("ui-sortable");
   $("#download-layout .row-fluid").removeClass("clearfix").children().removeClass("column");
@@ -342,6 +329,25 @@ function initEditor() {
   editorInstance.getSession().setTabSize(2);
 }
 
+/**
+ * 初始化可让元素拖拉进去的容器
+ */
+function initSortableContainer() {
+  // 这些容器都可允许元素拖拉进里面
+  $(".demo .column, .demo form, .demo .panel-body").sortable({
+    opacity    : .35,
+    connectWith: ".demo, .column, form, .panel-body", // GRID布局可在这些范围内自由拖拉
+    start      : function() {
+      if (!stopDrag) stopSave++;
+      stopDrag = 1;
+    },
+    stop       : function() {
+      if (stopSave > 0) stopSave--;
+      stopDrag = 0;
+    }
+  });
+}
+
 $(document).ready(function() {
 
   // 加载数据
@@ -365,18 +371,8 @@ $(document).ready(function() {
     stop             : function(event, ui) {
       ui.helper.css({width: 'auto', height: 'auto', 'z-index': 'auto'}); // 使其显示正常
 
-      $(".demo .column").sortable({
-        opacity    : .35,
-        connectWith: ".column",
-        start      : function() {
-          if (!stopDrag) stopSave++;
-          stopDrag = 1;
-        },
-        stop       : function() {
-          if (stopSave > 0) stopSave--;
-          stopDrag = 0;
-        }
-      });
+      initSortableContainer();
+
       if (stopSave > 0) stopSave--;
       stopDrag = 0;
     }
@@ -384,7 +380,7 @@ $(document).ready(function() {
 
   // 左边菜单项（除GRID SYSTEM外）的拖拉事件
   $(".sidebar-nav .box").draggable({
-    connectToSortable: ".column",
+    connectToSortable: ".column, form, .panel .panel-body",
     helper           : "clone",
     handle           : ".drag",
     start            : function() {
@@ -396,6 +392,8 @@ $(document).ready(function() {
     },
     stop             : function(event, ui) {
       ui.helper.css({width: 'auto', height: 'auto', 'z-index': 'auto'}); // 使其宽度显示正常
+
+      initSortableContainer();
 
       handleJsIds();
       if (stopSave > 0) stopSave--;
@@ -410,8 +408,22 @@ $(document).ready(function() {
   // 注册事件
   $('body.edit .demo').on("click", "[data-target=#editorModal]", function(e) {
     e.preventDefault();
+
     currentEditor = $(this).parent().parent().find('.view');
-    var contentHtml = $.htmlClean(currentEditor.html(), {
+
+    // 取得view中的html，子view用<div data-component-type=""></div>作为标识位，主要是为了还原编辑状态的HTML结构
+    $("#download-layout").children().html(currentEditor.html());
+    var containerElem = $("#download-layout").children();
+    _.each(containerElem.children(), function(rootItem) {
+      var viewElems = $(rootItem).find('.view');
+      _.eachRight(viewElems, function(viewElemItem) { // 用eachRight从子元素开始处理
+        var $viewElemItem = $(viewElemItem);
+        var $fatherItem = $viewElemItem.closest('.lyrow, .box-element');
+        $fatherItem.replaceWith('<div data-component-type="' + $fatherItem.find('.preview').text() + '">' + $viewElemItem.html() + '</div>'); // 给真实代码加上一个div标识
+      });
+    });
+
+    var contentHtml = $.htmlClean(containerElem.html(), {
       format           : true,
       allowedAttributes: [
         ["id"],
@@ -424,14 +436,32 @@ $(document).ready(function() {
         ["aria-labelledby"],
         ["aria-hidden"],
         ["data-slide-to"],
-        ["data-slide"]
+        ["data-slide"],
+        ["data-component-type"],
+        ["contenteditable"]
       ]
     });
     editorInstance.setValue(contentHtml);
   });
   $("#saveContent").click(function(e) {
     e.preventDefault();
-    currentEditor.html(editorInstance.getValue());
+
+    var $editedHtmlElem = $(editorInstance.getValue());
+    var components = $editedHtmlElem.find('div[data-component-type]');
+    _.each(components, function(item) {
+      var matchMenuItem = _.find($('.sidebar-nav').find('.preview'), function(previewItem) {
+        if ($(previewItem).text() == $(item).attr('data-component-type')) {
+          return true;
+        }
+      });
+
+      var $restoreItem = $($(matchMenuItem).closest('.box-element').eq(0).outerHTML);
+      $(item).wrap($restoreItem.find('.view'));
+    });
+
+    //console.log($editedHtmlElem.html());
+
+    //currentEditor.html(editorInstance.getValue());
   });
   $("[data-target=#downloadModal]").click(function(e) {
     e.preventDefault();
